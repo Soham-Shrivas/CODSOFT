@@ -498,8 +498,8 @@
 
         <label for="modelSelect">Model</label>
         <select id="modelSelect" style="width:100%;padding:10px 14px;border:1px solid var(--outline);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;outline:none;background:var(--surface);color:var(--text-on-surface);margin-bottom:16px;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;cursor:pointer;">
-          <option value="llama3-8b-8192">Llama 3 (8B) — Fast</option>
-          <option value="llama3-70b-8192">Llama 3 (70B) — Powerful</option>
+          <option value="llama-3.1-8b-instant">Llama 3.1 (8B) — Fast</option>
+          <option value="llama-3.3-70b-versatile">Llama 3.3 (70B) — Powerful</option>
           <option value="mixtral-8x7b-32768">Mixtral 8x7B — Balanced</option>
           <option value="gemma2-9b-it">Gemma 2 (9B) — Efficient</option>
         </select>
@@ -532,7 +532,7 @@
       let isProcessing = false;
       let conversationHistory = [];
       let aiAvailable = false;
-      let currentModel = localStorage.getItem(MODEL_KEY) || 'llama3-8b-8192';
+      let currentModel = localStorage.getItem(MODEL_KEY) || 'llama-3.1-8b-instant';
 
       const SYSTEM_PROMPT = `You are the Cognitive Assistant, a friendly and knowledgeable AI assistant built with Groq's LLM API. You help users with general inquiries, technical support, and account settings.
 

@@ -36,7 +36,7 @@ app.post('/api/chat', async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: model || 'llama3-8b-8192',
+        model: model || 'llama-3.1-8b-instant',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1024
