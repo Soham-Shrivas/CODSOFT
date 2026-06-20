@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIC TAC TOE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #eef2f7;
+    --grid-line: #c7d4e3;
+    --paper: #ffffff;
+    --ink-x: #2c4a7c;
+    --ink-x-soft: #6f8db3;
+    --ink-o: #a0334d;
+    --ink-o-soft: #c98a98;
+    --navy: #1c2541;
+    --navy-soft: #5a6b8c;
+    --amber: #e8a33d;
+    --amber-soft: #fbe6c2;
+    --line: #c7d4e3;
+  }
+
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--bg);
+    font-family:'Inter', sans-serif;
+    color:var(--navy);
+    overflow-x:hidden;
+  }
+
+  .screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 20px;
+  }
+  .screen.hidden{ display:none; }
+
+  /* ================= START SCREEN ================= */
+  #startScreen .start-card{
+    width:100%;
+    max-width:480px;
+    text-align:center;
+  }
+
+  .start-grid{
+    width:160px;
+    height:160px;
+    margin:0 auto 28px auto;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr);
+    gap:2px;
+    padding:2px;
+    background:var(--navy);
+    border-radius:12px;
+  }
+  .start-grid .sc{
+    background:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .start-grid svg{ width:48%; height:48%; }
+  .start-grid .mx path{ fill:none; stroke:var(--ink-x); stroke-width:9; stroke-linecap:round; }
+  .start-grid .mo circle{ fill:none; stroke:var(--ink-o); stroke-width:9; stroke-linecap:round; }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--navy-soft);
+    margin:0 0 10px 0;
+  }
+
+  h1.brand{
+    font-size:48px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    margin:0 0 12px 0;
+    line-height:1.05;
+  }
+  h1.brand .o-letter{ color:var(--ink-o); }
+  h1.brand .x-letter{ color:var(--ink-x); }
+
+  .start-card p.sub{
+    color:var(--navy-soft);
+    font-size:15px;
+    line-height:1.6;
+    max-width:380px;
+    margin:0 auto 30px auto;
+  }
+
+  .field{ margin-bottom:22px; text-align:left; }
+  .field label{
+    display:block;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--navy-soft);
+    margin-bottom:8px;
+  }
+
+  .seg{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    background:var(--paper);
+  }
+  .seg button{
+    flex:1;
+    border:none;
+    background:var(--paper);
+    color:var(--navy-soft);
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:11px 0;
+    cursor:pointer;
+    border-right:1px solid var(--line);
+    transition: background 0.15s, color 0.15s;
+  }
+  .seg button:last-child{ border-right:none; }
+  .seg button.active{ background:var(--navy); color:#fff; }
+  .seg button:hover:not(.active){ background:#f3f6fa; }
+
+  .diff-desc{
+    font-family:'Space Mono', monospace;
+    font-size:11.5px;
+    color:var(--navy-soft);
+    margin-top:8px;
+    min-height:16px;
+  }
+
+  button.cta{
+    width:100%;
+    padding:15px 0;
+    border-radius:10px;
+    border:none;
+    background:var(--navy);
+    color:#fff;
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button.cta:hover{ background:#28335a; }
+  button.cta:active{ transform:scale(0.99); }
+
+  .start-footnote{
+    margin-top:18px;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color:var(--navy-soft);
+    opacity:0.8;
+  }
+
+  /* ================= GAME SCREEN ================= */
+  .wrap{
+    width:100%;
+    max-width:920px;
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:36px;
+    align-items:start;
+  }
+  @media (max-width: 760px){ .wrap{ grid-template-columns: 1fr; } }
+
+  header.title{ grid-column:1 / -1; margin-bottom:4px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  header.title h2{
+    font-size:26px;
+    margin:0 0 4px 0;
+    font-weight:700;
+    letter-spacing:0.02em;
+  }
+  header.title h2 .o-letter{ color:var(--ink-o); }
+  header.title h2 .x-letter{ color:var(--ink-x); }
+  header.title p{ margin:0; color:var(--navy-soft); font-size:13.5px; }
+
+  button.linkback{
+    background:none;
+    border:none;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--navy-soft);
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+  button.linkback:hover{ color:var(--navy); }
+
+  .board-panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:28px;
+    box-shadow:0 1px 0 rgba(28,37,65,0.04);
+  }
+
+  .status-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; min-height:28px; flex-wrap:wrap; gap:8px; }
+  .status-text{ font-size:15px; font-weight:600; }
+  .status-text.x{ color:var(--ink-x); }
+  .status-text.o{ color:var(--ink-o); }
+  .status-text.win{ color:var(--amber); }
+
+  .score{ font-family:'Space Mono', monospace; font-size:12px; color:var(--navy-soft); display:flex; gap:14px; }
+  .score span b{ color:var(--navy); }
+
+  .board{
+    position:relative;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(3, 1fr);
+    width:100%;
+    aspect-ratio:1/1;
+    background:var(--navy);
+    border-radius:10px;
+    overflow:hidden;
+    gap:2px;
+    padding:2px;
+  }
+
+  .cell{
+    background:var(--paper);
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position:relative;
+    transition: background 0.15s ease;
+  }
+  .cell:hover:not(:disabled){ background:#f3f6fa; }
+  .cell:disabled{ cursor:default; }
+  .cell:focus-visible{ outline:3px solid var(--amber); outline-offset:-3px; }
+
+  .cell svg{ width:46%; height:46%; overflow:visible; }
+  .cell .mark-x path{
+    fill:none; stroke:var(--ink-x); stroke-width:9; stroke-linecap:round;
+    stroke-dasharray:140; stroke-dashoffset:140; animation: draw 0.28s ease forwards;
+  }
+  .cell .mark-o circle{
+    fill:none; stroke:var(--ink-o); stroke-width:9; stroke-linecap:round;
+    stroke-dasharray:220; stroke-dashoffset:220; animation: draw-o 0.32s ease forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  @keyframes draw-o{ to{ stroke-dashoffset:0; } }
+  .cell.winning{ background: var(--amber-soft); }
+
+  @media (prefers-reduced-motion: reduce){
+    .cell .mark-x path, .cell .mark-o circle{ animation:none; stroke-dashoffset:0; }
+  }
+
+  .controls{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  button.action{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px;
+    padding:10px 16px; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--navy); cursor:pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  button.action:hover{ border-color:var(--ink-x-soft); background:#f6f9fc; }
+  button.action.primary{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  button.action.primary:hover{ background:#28335a; }
+
+  .field-inline{ margin-top:18px; }
+  .field-inline label{
+    display:block; font-family:'Space Mono', monospace; font-size:11px;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--navy-soft); margin-bottom:8px;
+  }
+
+  /* ---- Stats panel ---- */
+  .stats-panel{
+    background:var(--navy);
+    color:#dbe3f0;
+    border-radius:14px;
+    padding:24px 24px 20px 24px;
+    font-family:'Space Mono', monospace;
+    position:sticky;
+    top:32px;
+  }
+  .stats-panel h2{
+    font-size:12px; text-transform:uppercase; letter-spacing:0.1em;
+    margin:0 0 16px 0; color:var(--amber); font-weight:700;
+    display:flex; align-items:center; gap:8px;
+  }
+  .pulse{ width:7px; height:7px; border-radius:50%; background:var(--amber); display:inline-block; }
+  .pulse.thinking{ animation: blink 0.7s infinite; }
+  @keyframes blink{ 50%{ opacity:0.2; } }
+
+  .stat-row{ display:flex; justify-content:space-between; font-size:12.5px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .stat-row .v{ color:#fff; font-weight:700; }
+
+  .log{ margin-top:16px; height:150px; overflow-y:auto; font-size:11px; line-height:1.7; color:#9fb0cf; padding-right:4px; }
+  .log div span.tag{ color:var(--amber); }
+  .log::-webkit-scrollbar{ width:5px; }
+  .log::-webkit-scrollbar-thumb{ background:#3a4670; border-radius:4px; }
+
+  .note{
+    margin-top:16px; font-family:'Inter', sans-serif; font-size:12.5px; line-height:1.6;
+    color:#9fb0cf; border-top:1px solid rgba(255,255,255,0.08); padding-top:14px;
+  }
+  .note b{ color:#dbe3f0; }
+
+  /* fade transition */
+  .fade-in{ animation: fadeIn 0.35s ease both; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<!-- ================= START SCREEN ================= -->
+<div class="screen" id="startScreen">
+  <div class="start-card fade-in">
+    <div class="start-grid">
+      <div class="sc"></div>
+      <div class="sc"><svg class="mo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="34"/></svg></div>
+      <div class="sc"></div>
+      <div class="sc"><svg class="mx" viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80"/></svg></div>
+      <div class="sc"><svg class="mo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="34"/></svg></div>
+      <div class="sc"></div>
+      <div class="sc"></div>
+      <div class="sc"></div>
+      <div class="sc"><svg class="mx" viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80"/></svg></div>
+    </div>
+
+    <p class="eyebrow">Game theory · Adversarial search</p>
+    <h1 class="brand">TIC <span class="x-letter">TAC</span> <span class="o-letter">TOE</span></h1>
+    <p class="sub">Play against an AI built on the minimax algorithm with alpha-beta pruning. Pick a difficulty and watch the search engine think in real time.</p>
+
+    <div class="field">
+      <label>Choose difficulty</label>
+      <div class="seg" id="startDifficulty">
+        <button data-level="easy">Easy</button>
+        <button data-level="medium">Medium</button>
+        <button data-level="hard" class="active">Unbeatable</button>
+      </div>
+      <div class="diff-desc" id="diffDesc">Full minimax search — perfect play. The best you can do is draw.</div>
+    </div>
+
+    <button class="cta" id="startBtn">Start game</button>
+    <p class="start-footnote">You play X · AI plays O · X moves first</p>
+  </div>
+</div>
+
+<!-- ================= GAME SCREEN ================= -->
+<div class="screen hidden" id="gameScreen">
+  <div class="wrap fade-in">
+    <header class="title">
+      <div>
+        <h2>TIC <span class="x-letter">TAC</span> <span class="o-letter">TOE</span></h2>
+        <p>You play X, the AI plays O.</p>
+      </div>
+      <button class="linkback" id="backBtn">&larr; back to start</button>
+    </header>
+
+    <section class="board-panel">
+      <div class="status-row">
+        <div class="status-text x" id="statusText">Your move</div>
+        <div class="score">
+          <span>You <b id="scoreX">0</b></span>
+          <span>Draws <b id="scoreD">0</b></span>
+          <span>AI <b id="scoreO">0</b></span>
+        </div>
+      </div>
+
+      <div class="board" id="board"></div>
+
+      <div class="field-inline">
+        <label>AI difficulty</label>
+        <div class="seg" id="difficulty">
+          <button data-level="easy">Easy</button>
+          <button data-level="medium">Medium</button>
+          <button data-level="hard" class="active">Unbeatable</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="action primary" id="newGameBtn">New round</button>
+        <button class="action" id="resetScoreBtn">Reset score</button>
+      </div>
+    </section>
+
+    <aside class="stats-panel">
+      <h2><span class="pulse" id="pulse"></span> Search stats</h2>
+      <div class="stat-row"><span>Algorithm</span><span class="v" id="statAlgo">Minimax + α-β</span></div>
+      <div class="stat-row"><span>Nodes evaluated</span><span class="v" id="statNodes">0</span></div>
+      <div class="stat-row"><span>Branches pruned</span><span class="v" id="statPruned">0</span></div>
+      <div class="stat-row"><span>Max depth reached</span><span class="v" id="statDepth">0</span></div>
+      <div class="stat-row"><span>Last think time</span><span class="v" id="statTime">0 ms</span></div>
+      <div class="stat-row"><span>Chosen cell value</span><span class="v" id="statValue">—</span></div>
+
+      <div class="log" id="log"></div>
+
+      <div class="note">
+        <b>How it works:</b> the AI recursively simulates every reachable game state, scoring wins as <b>+10</b>, losses as <b>−10</b>, and draws as <b>0</b> (adjusted by depth so it wins fast and loses slow). Alpha-beta pruning skips branches that can't change the outcome.
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const HUMAN = 'X', AI = 'O';
+  let board = Array(9).fill(null);
+  let gameOver = false;
+  let level = 'hard';
+  let scores = { X: 0, O: 0, D: 0 };
+
+  const startScreen = document.getElementById('startScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('statusText');
+  const logEl = document.getElementById('log');
+  const pulseEl = document.getElementById('pulse');
+
+  const DIFF_DESC = {
+    easy: 'Moves are picked at random. Great for warming up.',
+    medium: 'Mostly shallow search — beatable, but it will punish mistakes sometimes.',
+    hard: 'Full minimax search — perfect play. The best you can do is draw.'
+  };
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  // ---------- Start screen logic ----------
+  const startDiffSeg = document.getElementById('startDifficulty');
+  const diffDescEl = document.getElementById('diffDesc');
+  const difficultySeg = document.getElementById('difficulty');
+
+  function setLevel(newLevel){
+    level = newLevel;
+    document.querySelectorAll('#startDifficulty button').forEach(b => b.classList.toggle('active', b.getAttribute('data-level') === level));
+    document.querySelectorAll('#difficulty button').forEach(b => b.classList.toggle('active', b.getAttribute('data-level') === level));
+    diffDescEl.textContent = DIFF_DESC[level];
+    document.getElementById('statAlgo').textContent =
+      level === 'hard' ? 'Minimax + α-β' :
+      level === 'medium' ? 'Depth-limited minimax' : 'Random';
+  }
+
+  startDiffSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-level]');
+    if(!btn) return;
+    setLevel(btn.getAttribute('data-level'));
+  });
+
+  difficultySeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-level]');
+    if(!btn) return;
+    setLevel(btn.getAttribute('data-level'));
+    newGame();
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    newGame();
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    gameScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  });
+
+  // ---------- Board rendering ----------
+  function buildBoard(){
+    boardEl.innerHTML = '';
+    for(let i=0;i<9;i++){
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      btn.setAttribute('data-i', i);
+      btn.setAttribute('aria-label', 'cell ' + (i+1));
+      btn.addEventListener('click', () => onCellClick(i));
+      boardEl.appendChild(btn);
+    }
+  }
+
+  function markSVG(player){
+    if(player === HUMAN){
+      return `<svg class="mark-x" viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80"/></svg>`;
+    }
+    return `<svg class="mark-o" viewBox="0 0 100 100"><circle cx="50" cy="50" r="34"/></svg>`;
+  }
+
+  function renderBoard(winningLine){
+    const cells = boardEl.children;
+    for(let i=0;i<9;i++){
+      const cell = cells[i];
+      cell.innerHTML = board[i] ? markSVG(board[i]) : '';
+      cell.disabled = !!board[i] || gameOver;
+      cell.classList.toggle('winning', !!(winningLine && winningLine.includes(i)));
+    }
+  }
+
+  function checkWinner(b){
+    for(const line of WIN_LINES){
+      const [a,c,d] = line;
+      if(b[a] && b[a]===b[c] && b[a]===b[d]) return { player: b[a], line };
+    }
+    if(b.every(v=>v)) return { player:'draw', line:null };
+    return null;
+  }
+
+  function setStatus(text, cls){
+    statusEl.textContent = text;
+    statusEl.className = 'status-text' + (cls ? ' ' + cls : '');
+  }
+
+  function logLine(text){
+    const div = document.createElement('div');
+    div.innerHTML = `<span class="tag">›</span> ${text}`;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function updateScoreUI(){
+    document.getElementById('scoreX').textContent = scores.X;
+    document.getElementById('scoreO').textContent = scores.O;
+    document.getElementById('scoreD').textContent = scores.D;
+  }
+
+  // ---------- Minimax with alpha-beta pruning ----------
+  let stats;
+
+  function emptyIndices(b){
+    const out = [];
+    for(let i=0;i<9;i++) if(!b[i]) out.push(i);
+    return out;
+  }
+
+  function minimax(b, depth, isMaximizing, alpha, beta){
+    stats.nodes++;
+    stats.maxDepth = Math.max(stats.maxDepth, depth);
+
+    const result = checkWinner(b);
+    if(result){
+      if(result.player === AI) return 10 - depth;
+      if(result.player === HUMAN) return depth - 10;
+      return 0;
+    }
+
+    const moves = emptyIndices(b);
+
+    if(isMaximizing){
+      let best = -Infinity;
+      for(const m of moves){
+        b[m] = AI;
+        const val = minimax(b, depth+1, false, alpha, beta);
+        b[m] = null;
+        best = Math.max(best, val);
+        alpha = Math.max(alpha, best);
+        if(beta <= alpha){ stats.pruned++; break; }
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for(const m of moves){
+        b[m] = HUMAN;
+        const val = minimax(b, depth+1, true, alpha, beta);
+        b[m] = null;
+        best = Math.min(best, val);
+        beta = Math.min(beta, best);
+        if(beta <= alpha){ stats.pruned++; break; }
+      }
+      return best;
+    }
+  }
+
+  function bestMoveHard(b){
+    stats = { nodes:0, pruned:0, maxDepth:0 };
+    let bestVal = -Infinity;
+    let bestMove = null;
+    for(const m of emptyIndices(b)){
+      b[m] = AI;
+      const val = minimax(b, 1, false, -Infinity, Infinity);
+      b[m] = null;
+      if(val > bestVal){
+        bestVal = val;
+        bestMove = m;
+      }
+    }
+    return { move: bestMove, value: bestVal };
+  }
+
+  function minimaxLimited(b, depth, isMaximizing, alpha, beta, maxDepth){
+    stats.nodes++;
+    stats.maxDepth = Math.max(stats.maxDepth, depth);
+    const result = checkWinner(b);
+    if(result){
+      if(result.player === AI) return 10 - depth;
+      if(result.player === HUMAN) return depth - 10;
+      return 0;
+    }
+    if(depth >= maxDepth) return 0;
+
+    const moves = emptyIndices(b);
+    if(isMaximizing){
+      let best = -Infinity;
+      for(const m of moves){
+        b[m] = AI;
+        const val = minimaxLimited(b, depth+1, false, alpha, beta, maxDepth);
+        b[m] = null;
+        best = Math.max(best, val);
+        alpha = Math.max(alpha, best);
+        if(beta <= alpha){ stats.pruned++; break; }
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for(const m of moves){
+        b[m] = HUMAN;
+        const val = minimaxLimited(b, depth+1, true, alpha, beta, maxDepth);
+        b[m] = null;
+        best = Math.min(best, val);
+        beta = Math.min(beta, best);
+        if(beta <= alpha){ stats.pruned++; break; }
+      }
+      return best;
+    }
+  }
+
+  function bestMoveMedium(b){
+    stats = { nodes:0, pruned:0, maxDepth:0 };
+    const useFull = Math.random() < 0.3;
+    const cap = useFull ? 9 : 2;
+    let bestVal = -Infinity;
+    let bestMove = null;
+    const moves = emptyIndices(b);
+    for(const m of moves){
+      b[m] = AI;
+      const val = minimaxLimited(b, 1, false, -Infinity, Infinity, cap);
+      b[m] = null;
+      if(val > bestVal){
+        bestVal = val;
+        bestMove = m;
+      }
+    }
+    if(bestMove === null) bestMove = moves[Math.floor(Math.random()*moves.length)];
+    return { move: bestMove, value: bestVal };
+  }
+
+  function bestMoveEasy(b){
+    stats = { nodes:0, pruned:0, maxDepth:0 };
+    const moves = emptyIndices(b);
+    const move = moves[Math.floor(Math.random()*moves.length)];
+    stats.nodes = 1;
+    return { move, value: 0 };
+  }
+
+  function aiMove(){
+    if(gameOver) return;
+    pulseEl.classList.add('thinking');
+    setStatus('AI is thinking…', 'o');
+
+    setTimeout(() => {
+      const t0 = performance.now();
+      let result;
+      if(level === 'hard') result = bestMoveHard(board);
+      else if(level === 'medium') result = bestMoveMedium(board);
+      else result = bestMoveEasy(board);
+      const t1 = performance.now();
+
+      board[result.move] = AI;
+
+      document.getElementById('statNodes').textContent = stats.nodes.toLocaleString();
+      document.getElementById('statPruned').textContent = stats.pruned.toLocaleString();
+      document.getElementById('statDepth').textContent = stats.maxDepth;
+      document.getElementById('statTime').textContent = (t1 - t0).toFixed(1) + ' ms';
+      document.getElementById('statValue').textContent = result.value;
+
+      logLine(`O → cell ${result.move+1} · evaluated ${stats.nodes.toLocaleString()} nodes in ${(t1-t0).toFixed(1)}ms`);
+
+      pulseEl.classList.remove('thinking');
+      finishTurn();
+    }, 220);
+  }
+
+  function finishTurn(){
+    const result = checkWinner(board);
+    if(result){
+      gameOver = true;
+      if(result.player === 'draw'){
+        setStatus("It's a draw", 'win');
+        scores.D++;
+        logLine('Game over — draw.');
+      } else if(result.player === HUMAN){
+        setStatus('You win! 🎉', 'win');
+        scores.X++;
+        logLine('Game over — human wins.');
+      } else {
+        setStatus('AI wins', 'win');
+        scores.O++;
+        logLine('Game over — AI wins.');
+      }
+      updateScoreUI();
+      renderBoard(result.line);
+      return;
+    }
+    renderBoard(null);
+    setStatus('Your move', 'x');
+  }
+
+  function onCellClick(i){
+    if(gameOver || board[i]) return;
+    board[i] = HUMAN;
+    renderBoard(null);
+    const result = checkWinner(board);
+    if(result){ finishTurn(); return; }
+    setStatus('AI is thinking…', 'o');
+    aiMove();
+  }
+
+  function newGame(){
+    board = Array(9).fill(null);
+    gameOver = false;
+    logEl.innerHTML = '';
+    document.getElementById('statNodes').textContent = '0';
+    document.getElementById('statPruned').textContent = '0';
+    document.getElementById('statDepth').textContent = '0';
+    document.getElementById('statTime').textContent = '0 ms';
+    document.getElementById('statValue').textContent = '—';
+    renderBoard(null);
+    setStatus('Your move', 'x');
+    logLine(`New round started · difficulty: ${level}`);
+  }
+
+  document.getElementById('newGameBtn').addEventListener('click', newGame);
+  document.getElementById('resetScoreBtn').addEventListener('click', () => {
+    scores = { X:0, O:0, D:0 };
+    updateScoreUI();
+  });
+
+  buildBoard();
+})();
+</script>
+
+</body>
+</html>
