@@ -387,18 +387,10 @@
     .modal-actions button:hover {
       opacity: 0.9;
     }
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
     .btn-secondary {
       background: var(--surface);
       color: var(--text-on-surface);
       border: 1px solid var(--outline) !important;
-    }
-    .btn-danger {
-      background: #fee2e2;
-      color: #dc2626;
     }
     .status-row {
       display: flex;
@@ -435,13 +427,6 @@
       clip: rect(0,0,0,0);
       border: 0;
     }
-    .error-message {
-      font-size: 12px;
-      color: #dc2626;
-      margin-top: -12px;
-      margin-bottom: 12px;
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -455,7 +440,7 @@
         <span class="status-text">Online</span>
       </div>
       <span id="modeBadge" class="mode-badge rule">Rule</span>
-      <button id="settingsBtn" class="settings-btn" aria-label="Settings">
+      <button id="settingsBtn" class="settings-btn" aria-label="Connection info">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -491,24 +476,25 @@
 
     <div id="live-region" aria-live="polite" aria-atomic="true"></div>
 
-    <div id="settingsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="API Settings">
+    <div id="infoModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Connection Info">
       <div class="modal">
-        <h2>AI Settings</h2>
-        <p>Connect to Groq's free LLM API for real AI conversations. Get a free API key at <strong>console.groq.com</strong>.</p>
+        <h2>Connection Info</h2>
+        <p>This chatbot uses a backend proxy to securely call the Groq AI API. The API key stays on the server.</p>
 
         <div id="apiStatus" class="status-row disconnected">
           <span class="dot"></span>
-          <span id="apiStatusText">AI not configured</span>
+          <span id="apiStatusText">Checking connection...</span>
         </div>
 
-        <label for="apiKeyInput">Groq API Key</label>
-        <input
-          id="apiKeyInput"
-          type="password"
-          placeholder="gsk_..."
-          autocomplete="off"
-        />
-        <div id="apiError" class="error-message"></div>
+        <div style="background:var(--surface);border:1px solid var(--outline);border-radius:10px;padding:12px;font-size:13px;line-height:1.6;margin-bottom:16px;">
+          <strong>To run the backend:</strong>
+          <ol style="margin:8px 0 0 20px;padding:0;">
+            <li>Copy <code>.env.example</code> to <code>.env</code></li>
+            <li>Add your Groq API key to <code>.env</code></li>
+            <li>Run <code>npm install && npm start</code></li>
+            <li>Refresh this page</li>
+          </ol>
+        </div>
 
         <label for="modelSelect">Model</label>
         <select id="modelSelect" style="width:100%;padding:10px 14px;border:1px solid var(--outline);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;outline:none;background:var(--surface);color:var(--text-on-surface);margin-bottom:16px;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;cursor:pointer;">
@@ -518,12 +504,8 @@
           <option value="gemma2-9b-it">Gemma 2 (9B) — Efficient</option>
         </select>
 
-        <div class="modal-actions">
-          <button id="clearKeyBtn" class="btn-danger">Clear</button>
-          <button id="saveKeyBtn" class="btn-primary">Save</button>
-        </div>
-        <div style="margin-top:10px;">
-          <button id="closeSettingsBtn" class="btn-secondary" style="width:100%;">Cancel</button>
+        <div>
+          <button id="closeInfoBtn" class="btn-secondary" style="width:100%;">Close</button>
         </div>
       </div>
     </div>
@@ -537,24 +519,19 @@
       const quickChips = document.getElementById('quickChips');
       const liveRegion = document.getElementById('live-region');
       const settingsBtn = document.getElementById('settingsBtn');
-      const settingsModal = document.getElementById('settingsModal');
-      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-      const saveKeyBtn = document.getElementById('saveKeyBtn');
-      const clearKeyBtn = document.getElementById('clearKeyBtn');
-      const apiKeyInput = document.getElementById('apiKeyInput');
+      const infoModal = document.getElementById('infoModal');
+      const closeInfoBtn = document.getElementById('closeInfoBtn');
       const modelSelect = document.getElementById('modelSelect');
       const apiStatus = document.getElementById('apiStatus');
       const apiStatusText = document.getElementById('apiStatusText');
-      const apiError = document.getElementById('apiError');
       const modeBadge = document.getElementById('modeBadge');
 
-      const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-      const STORAGE_KEY = 'cognitive_assistant_groq_key';
+      const BACKEND_URL = 'http://localhost:3001';
       const MODEL_KEY = 'cognitive_assistant_model';
 
       let isProcessing = false;
       let conversationHistory = [];
-      let currentApiKey = localStorage.getItem(STORAGE_KEY) || '';
+      let aiAvailable = false;
       let currentModel = localStorage.getItem(MODEL_KEY) || 'llama3-8b-8192';
 
       const SYSTEM_PROMPT = `You are the Cognitive Assistant, a friendly and knowledgeable AI assistant built with Groq's LLM API. You help users with general inquiries, technical support, and account settings.
@@ -582,23 +559,30 @@ Guidelines:
       }
 
       function updateModeBadge() {
-        if (currentApiKey) {
-          modeBadge.textContent = 'AI';
-          modeBadge.className = 'mode-badge ai';
-        } else {
-          modeBadge.textContent = 'Rule';
-          modeBadge.className = 'mode-badge rule';
-        }
+        modeBadge.textContent = aiAvailable ? 'AI' : 'Rule';
+        modeBadge.className = aiAvailable ? 'mode-badge ai' : 'mode-badge rule';
       }
 
       function updateApiStatus() {
-        if (currentApiKey) {
+        if (aiAvailable) {
           apiStatus.className = 'status-row connected';
-          apiStatusText.textContent = 'AI connected — using Groq API';
+          apiStatusText.textContent = 'Backend connected — AI responses active';
         } else {
           apiStatus.className = 'status-row disconnected';
-          apiStatusText.textContent = 'AI not configured — using rule-based responses';
+          apiStatusText.textContent = 'Backend not reachable — using rule-based fallback';
         }
+      }
+
+      async function checkBackend() {
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/health`, { signal: AbortSignal.timeout(2000) });
+          const data = await res.json();
+          aiAvailable = data.aiConfigured === true;
+        } catch {
+          aiAvailable = false;
+        }
+        updateModeBadge();
+        updateApiStatus();
       }
 
       function addMessage(text, type, extraClass = '') {
@@ -743,34 +727,26 @@ Guidelines:
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
-      async function callGroqAPI(userText) {
+      async function callBackendAI(userText) {
         const messages = [
           { role: 'system', content: SYSTEM_PROMPT },
           ...conversationHistory.slice(-20),
           { role: 'user', content: userText }
         ];
 
-        const response = await fetch(GROQ_API_URL, {
+        const res = await fetch(`${BACKEND_URL}/api/chat`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${currentApiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: currentModel,
-            messages: messages,
-            temperature: 0.7,
-            max_tokens: 1024
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, model: currentModel })
         });
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.error?.message || `API error (${response.status})`);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `Backend error (${res.status})`);
         }
 
-        const data = await response.json();
-        return data.choices[0].message.content;
+        const data = await res.json();
+        return data.content;
       }
 
       function isInputKnown(text) {
@@ -800,41 +776,27 @@ Guidelines:
         addTypingIndicator();
 
         try {
-          if (currentApiKey) {
-            const aiResponse = await callGroqAPI(text);
+          if (aiAvailable) {
+            const aiResponse = await callBackendAI(text);
             removeTypingIndicator();
 
             conversationHistory.push({ role: 'user', content: text });
             conversationHistory.push({ role: 'assistant', content: aiResponse });
 
-            const formatted = convertMarkdown(aiResponse);
-            addMessage(formatted, 'bot');
+            addMessage(convertMarkdown(aiResponse), 'bot');
           } else {
             await new Promise(resolve => setTimeout(resolve, 500));
             removeTypingIndicator();
 
             const response = ruleBasedRespond(text);
-            const lower = text.trim().toLowerCase();
-
-            if (isInputKnown(text)) {
-              addMessage(response, 'bot');
-            } else {
-              addMessage(response, 'bot');
-              showStructuredList();
-            }
+            addMessage(response, 'bot');
+            if (!isInputKnown(text)) showStructuredList();
           }
         } catch (err) {
           removeTypingIndicator();
-          const errorMsg = err.message || 'Something went wrong.';
-          addMessage(`I encountered an error: ${errorMsg}. Falling back to rule-based mode.`, 'bot');
-
-          if (errorMsg.includes('401') || errorMsg.includes('auth') || errorMsg.includes('key')) {
-            currentApiKey = '';
-            localStorage.removeItem(STORAGE_KEY);
-            updateModeBadge();
-            updateApiStatus();
-            apiKeyInput.value = '';
-          }
+          aiAvailable = false;
+          updateModeBadge();
+          addMessage(`Backend unavailable: ${err.message}. Falling back to rule-based.`, 'bot');
 
           await new Promise(resolve => setTimeout(resolve, 300));
           const response = ruleBasedRespond(text);
@@ -852,66 +814,25 @@ Guidelines:
         handleUserMessage(action);
       }
 
-      function openSettings() {
-        apiKeyInput.value = currentApiKey;
-        modelSelect.value = currentModel;
+      function openInfo() {
         updateApiStatus();
-        apiError.style.display = 'none';
-        settingsModal.classList.add('open');
+        modelSelect.value = currentModel;
+        infoModal.classList.add('open');
       }
 
-      function closeSettings() {
-        settingsModal.classList.remove('open');
+      function closeInfo() {
+        infoModal.classList.remove('open');
+        currentModel = modelSelect.value;
+        localStorage.setItem(MODEL_KEY, currentModel);
+        conversationHistory = [];
         userInput.focus();
       }
 
-      function saveSettings() {
-        const key = apiKeyInput.value.trim();
-        const model = modelSelect.value;
+      settingsBtn.addEventListener('click', openInfo);
+      closeInfoBtn.addEventListener('click', closeInfo);
 
-        if (key && !key.startsWith('gsk_')) {
-          apiError.textContent = 'Invalid key format. Groq keys start with "gsk_".';
-          apiError.style.display = 'block';
-          return;
-        }
-
-        apiError.style.display = 'none';
-
-        if (key) {
-          currentApiKey = key;
-          localStorage.setItem(STORAGE_KEY, key);
-          conversationHistory = [];
-        } else {
-          currentApiKey = '';
-          localStorage.removeItem(STORAGE_KEY);
-          conversationHistory = [];
-        }
-
-        currentModel = model;
-        localStorage.setItem(MODEL_KEY, model);
-
-        updateModeBadge();
-        updateApiStatus();
-        closeSettings();
-      }
-
-      function clearSettings() {
-        apiKeyInput.value = '';
-        apiError.style.display = 'none';
-        apiKeyInput.focus();
-      }
-
-      settingsBtn.addEventListener('click', openSettings);
-      closeSettingsBtn.addEventListener('click', closeSettings);
-      saveKeyBtn.addEventListener('click', saveSettings);
-      clearKeyBtn.addEventListener('click', clearSettings);
-
-      settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal) closeSettings();
-      });
-
-      apiKeyInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') saveSettings();
+      infoModal.addEventListener('click', (e) => {
+        if (e.target === infoModal) closeInfo();
       });
 
       sendBtn.addEventListener('click', () => {
@@ -928,20 +849,20 @@ Guidelines:
       quickChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.chip');
         if (chip) {
-          const label = chip.getAttribute('data-action');
-          handleChipClick(label);
+          handleChipClick(chip.getAttribute('data-action'));
         }
       });
 
       updateModeBadge();
 
-      window.addEventListener('load', () => {
+      window.addEventListener('load', async () => {
+        await checkBackend();
         setTimeout(() => {
           addMessage("Hello! I'm your Cognitive Assistant. How can I help you today?", 'bot');
-          if (!currentApiKey) {
-            showStructuredList();
+          if (aiAvailable) {
+            addMessage("Backend AI is connected — ask me anything!", 'bot');
           } else {
-            addMessage("I'm connected to Groq AI — ask me anything!", 'bot');
+            showStructuredList();
           }
           userInput.focus();
         }, 300);
